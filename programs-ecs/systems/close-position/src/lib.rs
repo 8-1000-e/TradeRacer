@@ -1,6 +1,7 @@
 use bolt_lang::*;
 use game_config::GameConfig;
 use player_state::PlayerState;
+use shared::*;
 
 declare_id!("ChETGKhsRzTynoskTMnaPUfyB2GUmCoE228Gv6FoczT9");
 
@@ -22,31 +23,74 @@ declare_id!("ChETGKhsRzTynoskTMnaPUfyB2GUmCoE228Gv6FoczT9");
 #[system]
 pub mod close_position {
 
-    pub fn execute(ctx: Context<Components>, _args_p: Vec<u8>) -> Result<Components> {
-        // TODO: require!(game_config.status == 1, GameError::GameNotPlaying).
-        // TODO: read current_price via shared::read_pyth_price(remaining_accounts.last()).
-        // TODO: if player_state.position == POS_FLAT { return Ok(...) } — nothing to do.
-        // TODO: compute signed unrealized PnL using i128 (see header math).
-        // TODO: write player_state.unrealized_pnl = unrealized as i64.
+    pub fn execute(ctx: Context<Components>, _args_p: Vec<u8>) -> Result<Components> 
+    {
+        require!(ctx.accounts.game_config.status == 1, GameError::GameNotPlaying);
+        let current_price = shared::read_pyth_price(ctx.remaining_accounts.last().unwrap())?;
+        if ctx.accounts.player_state.position != POS_FLAT 
+        {
+            let unrealized: i128 = if ctx.accounts.player_state.position == POS_LONG 
+            {
+                (current_price as i128 - ctx.accounts.player_state.entry_price as i128)
+                    * (ctx.accounts.player_state.position_size as i128)
+                    / (ctx.accounts.player_state.entry_price as i128)
+            } 
+            else //SHORT
+            {
+                (ctx.accounts.player_state.entry_price as i128 - current_price as i128)
+                    * (ctx.accounts.player_state.position_size as i128)
+                    / (ctx.accounts.player_state.entry_price as i128)
+            };
 
-        // ─── Liquidation check (runs even on a non-close tick) ───
-        // TODO: let net = (player_state.balance as i128) + unrealized;
-        //       if net <= 0 → force-close: balance = 0, position = POS_FLAT, leverage=0,
-        //       entry_price=0, position_size=0, unrealized_pnl=0,
-        //       realized_pnl = realized_pnl.saturating_add(unrealized as i64),
-        //       alive = false. Return early.
+            ctx.accounts.player_state.unrealized_pnl = unrealized as i64;
 
-        // ─── Voluntary close (parse "close": 1) ───
-        // TODO: if shared::parse_json_u64(&_args_p, b"close") == 1 {
-        //         margin = position_size / leverage as u64;
-        //         payout = (margin as i128) + unrealized;     // signed
-        //         balance = payout.max(0) as u64;             // can't go below 0
-        //         realized_pnl += unrealized as i64;
-        //         position = POS_FLAT, leverage = 0, entry_price = 0,
-        //         position_size = 0, unrealized_pnl = 0;
-        //         if balance == 0 { alive = false; }
-        //       }
 
+            //liquidation check
+
+            let liquidated = match ctx.accounts.player_state.position 
+            {
+                POS_LONG  => current_price <= ctx.accounts.player_state.liq_price,
+                POS_SHORT => current_price >= ctx.accounts.player_state.liq_price,
+                _ => false,
+            };
+
+            if liquidated 
+            {
+                let margin = ctx.accounts.player_state.position_size / ctx.accounts.player_state.leverage as u64;
+                ctx.accounts.player_state.realized_pnl = ctx.accounts.player_state.realized_pnl.saturating_sub(margin as i64);
+                ctx.accounts.player_state.position = POS_FLAT;
+                ctx.accounts.player_state.leverage = 0;
+                ctx.accounts.player_state.entry_price = 0;
+                ctx.accounts.player_state.liq_price = 0;
+                ctx.accounts.player_state.position_size = 0;
+                ctx.accounts.player_state.unrealized_pnl = 0;
+                if ctx.accounts.player_state.balance == 0 
+                {
+                    ctx.accounts.player_state.alive = false;
+                }
+                return Ok(ctx.accounts);
+            }
+
+
+            //manual close
+            if parse_json_u64(&_args_p, b"close") == 1 && ctx.accounts.player_state.alive
+            {
+                let margin = ctx.accounts.player_state.position_size / ctx.accounts.player_state.leverage as u64;
+                let payout = (margin as i128) + unrealized;
+                ctx.accounts.player_state.balance += payout.max(0) as u64;
+                ctx.accounts.player_state.realized_pnl = ctx.accounts.player_state.realized_pnl.saturating_add(unrealized as i64);
+                ctx.accounts.player_state.position = POS_FLAT;
+                ctx.accounts.player_state.leverage = 0;
+                ctx.accounts.player_state.entry_price = 0;
+                ctx.accounts.player_state.liq_price = 0;
+                ctx.accounts.player_state.position_size = 0;
+                ctx.accounts.player_state.unrealized_pnl = 0;
+                if ctx.accounts.player_state.balance == 0 
+                {
+                    ctx.accounts.player_state.alive = false;
+                }
+            }
+        }
         Ok(ctx.accounts)
     }
 
