@@ -29,6 +29,8 @@ pub struct PlayerState {
 
     /// Cumulative realized PnL across closed positions (lamports, can be negative).
     pub realized_pnl: i64,
+    /// Most recent unrealized PnL snapshot (lamports), recomputed by close-position.
+    pub unrealized_pnl: i64,
 
 }
 
@@ -44,6 +46,7 @@ impl Default for PlayerState {
             entry_price: 0,
             position_size: 0,
             realized_pnl: 0,
+            unrealized_pnl: 0,
             bolt_metadata: BoltMetadata::default(),
         }
     }

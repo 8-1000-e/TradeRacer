@@ -23,19 +23,22 @@ pub mod open_position {
         require!(ctx.accounts.player_state.alive, GameError::PlayerDead);
         require!(ctx.accounts.player_state.position == POS_FLAT, GameError::PositionAlreadyOpen);
 
-        ctx.accounts.player_state.position = parse_json_u64(&_args_p, "position")? as u8;
-        ctx.accounts.player_state.leverage = parse_json_u64(&_args_p, "leverage")? as u8;
-        ctx.accounts.player_state.position_size = parse_json_u64(&_args_p, "margin")? * ctx.accounts.player_state.leverage as u64;
-        ctx.accounts.player_state.balance -= ctx.accounts.player_state.position_size;
-        // TODO: parse direction / leverage / margin via shared::parse_json_*.
-        // TODO: require!(direction == POS_LONG || direction == POS_SHORT, InvalidDirection).
-        // TODO: require!(LEVERAGE_TIERS.contains(&leverage), InvalidLeverage).
-        // TODO: require!(margin > 0 && margin <= player_state.balance, InsufficientBalance).
-        // TODO: read entry_price from ctx.remaining_accounts last (Pyth Lazer).
-        // TODO: write player_state: position=direction, leverage, entry_price,
-        //       position_size = margin × leverage as u64. Subtract margin from balance.
-        //       (Margin is reclaimed by close-position when "close": 1 is passed.)
-        // TODO: anti-spam: bump player_state.last_action_slot = Clock::get()?.slot.
+        let position = parse_json_u64(&_args_p, b"position") as u8;
+        let leverage = parse_json_u64(&_args_p, b"leverage") as u8;
+        let margin   = parse_json_u64(&_args_p, b"margin");
+
+        require!(position == POS_LONG || position == POS_SHORT, GameError::InvalidDirection);
+        require!(LEVERAGE_TIERS.contains(&leverage), GameError::InvalidLeverage);
+        require!(margin > 0 && margin <= ctx.accounts.player_state.balance, GameError::InsufficientBalance);
+        let position_size = margin.checked_mul(leverage as u64).ok_or(GameError::InsufficientBalance)?;
+
+        ctx.accounts.player_state.position = position;
+        ctx.accounts.player_state.leverage = leverage;
+        ctx.accounts.player_state.position_size = position_size;
+        ctx.accounts.player_state.balance -= margin;
+        ctx.accounts.player_state.unrealized_pnl = 0;
+
+        ctx.accounts.player_state.entry_price = read_pyth_price(ctx.remaining_accounts.last().unwrap())?;
         Ok(ctx.accounts)
     }
 
