@@ -1,6 +1,7 @@
 use bolt_lang::*;
 use game_config::GameConfig;
 use player_state::PlayerState;
+use shared::*;
 
 declare_id!("HbiVhxLoCFQ2uYzAAKXisSpiyEdve38bvva5v97nTwVw");
 
@@ -16,10 +17,16 @@ declare_id!("HbiVhxLoCFQ2uYzAAKXisSpiyEdve38bvva5v97nTwVw");
 #[system]
 pub mod open_position {
 
-    pub fn execute(ctx: Context<Components>, _args_p: Vec<u8>) -> Result<Components> {
-        // TODO: require!(game_config.status == 1, GameError::GameNotPlaying).
-        // TODO: require!(player_state.alive, GameError::PlayerDead).
-        // TODO: require!(player_state.position == shared::POS_FLAT, GameError::PositionAlreadyOpen).
+    pub fn execute(ctx: Context<Components>, _args_p: Vec<u8>) -> Result<Components> 
+    {
+        require!(ctx.accounts.game_config.status == 1, GameError::GameNotPlaying);
+        require!(ctx.accounts.player_state.alive, GameError::PlayerDead);
+        require!(ctx.accounts.player_state.position == POS_FLAT, GameError::PositionAlreadyOpen);
+
+        ctx.accounts.player_state.position = parse_json_u64(&_args_p, "position")? as u8;
+        ctx.accounts.player_state.leverage = parse_json_u64(&_args_p, "leverage")? as u8;
+        ctx.accounts.player_state.position_size = parse_json_u64(&_args_p, "margin")? * ctx.accounts.player_state.leverage as u64;
+        ctx.accounts.player_state.balance -= ctx.accounts.player_state.position_size;
         // TODO: parse direction / leverage / margin via shared::parse_json_*.
         // TODO: require!(direction == POS_LONG || direction == POS_SHORT, InvalidDirection).
         // TODO: require!(LEVERAGE_TIERS.contains(&leverage), InvalidLeverage).
