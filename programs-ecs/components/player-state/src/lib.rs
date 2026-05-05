@@ -2,8 +2,11 @@ use bolt_lang::*;
 
 declare_id!("DTQz7WWMC6wpnBNMwujh9BUeHrezBcXfsrUM1KsdBL73");
 
-/// Per-player trading account. Balance is "fake SOL" handed out on spawn —
-/// dies (alive=false) when balance + unrealized PnL hits 0.
+/// Per-player trading account. Balance is fake USD (USDC-equivalent) handed out
+/// on spawn — dies (alive=false) when balance + unrealized PnL hits 0.
+/// All dollar amounts (balance, margin, position_size, entry_price, liq_price,
+/// realized_pnl, unrealized_pnl) are USD with 8 decimals — same unit as the
+/// Pyth Lazer SOL/USD feed, so PnL math needs no unit conversion.
 #[component(delegate)]
 pub struct PlayerState {
     pub authority: Pubkey,
@@ -13,8 +16,8 @@ pub struct PlayerState {
     pub alive: bool,
 
     // ─── Trading state ───
-    /// Cash balance in lamports (fake SOL). Updated by close-position on close /
-    /// liquidation; locked while a position is open.
+    /// Cash balance in fake USD (8 decimals). Updated by close-position on
+    /// close / liquidation; the part locked as margin lives in position_size.
     pub balance: u64,
 
     /// Position direction: 0=Flat, 1=Long, 2=Short. See shared::POS_*.
@@ -23,16 +26,17 @@ pub struct PlayerState {
     pub leverage: u8,
     /// Pyth raw price at which the position was opened (0 if flat).
     pub entry_price: u64,
-    /// Notional position size in lamports = margin × leverage.
-    /// Margin (lamports of balance reserved) = position_size / leverage.
+    /// Notional position size in fake USD (8 decimals) = margin × leverage.
+    /// Margin (USD reserved from balance) = position_size / leverage.
     pub position_size: u64,
     /// Pyth raw price at which the position auto-liquidates (0 if flat).
     /// Long: entry × (1 − 1/leverage). Short: entry × (1 + 1/leverage).
     pub liq_price: u64,
 
-    /// Cumulative realized PnL across closed positions (lamports, can be negative).
+    /// Cumulative realized PnL across closed positions (fake USD, 8 decimals, signed).
     pub realized_pnl: i64,
-    /// Most recent unrealized PnL snapshot (lamports), recomputed by close-position.
+    /// Most recent unrealized PnL snapshot (fake USD, 8 decimals, signed),
+    /// recomputed by close-position on each tick.
     pub unrealized_pnl: i64,
 
 }

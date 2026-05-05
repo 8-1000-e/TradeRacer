@@ -10,7 +10,7 @@ declare_id!("HbiVhxLoCFQ2uYzAAKXisSpiyEdve38bvva5v97nTwVw");
 /// Args (JSON):
 ///   - "direction": 1=Long, 2=Short (POS_LONG / POS_SHORT)
 ///   - "leverage":  one of shared::LEVERAGE_TIERS
-///   - "margin":    lamports of balance to put up as margin
+///   - "margin":    fake USD (8 decimals) of balance to put up as margin
 ///                  (notional position_size = margin × leverage)
 ///
 /// remaining_accounts[last]: Pyth Lazer SOL/USD account for entry price.

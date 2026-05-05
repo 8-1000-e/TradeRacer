@@ -93,8 +93,11 @@ pub fn read_pyth_price(account: &AccountInfo) -> Result<u64> {
 
 // ─── Game-wide constants ───
 
-/// Starting fake-SOL balance handed to each player on spawn (10 SOL in lamports).
-pub const STARTING_BALANCE: u64 = 10_000_000_000;
+/// Starting fake-USD balance handed to each player on spawn. 2500 USD,
+/// stored with 8 decimals so the unit matches the Pyth Lazer price feed
+/// (USD-with-8-decimals). PnL math stays in one unit system, no conversion.
+/// 2500 × 10^8 = 2.5e11.
+pub const STARTING_BALANCE: u64 = 250_000_000_000;
 
 /// Lobby duration before the game auto-starts (seconds).
 pub const LOBBY_DURATION_SEC: i64 = 60;
