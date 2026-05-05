@@ -4,25 +4,11 @@ use player_registry::PlayerRegistry;
 use leaderboard::{Leaderboard, LeaderboardEntry, MAX_LEADERBOARD};
 use shared::*;
 
-declare_id!("Hx4rWEBiQb1z41gByya3yvDCjZYcvkdF946AzQ6mbaru");
+declare_id!("4tp1GQbdrhqw45jwwdZPG5e1Njhhbd5tVXg94cRdxdRo");
 
-/// Bolt prepends one AccountInfo per #[system_input] component to remaining_accounts
-/// before our extras. This system has 3 components, so PlayerState PDAs start at
-/// index 3.
 const NUM_COMPONENTS: usize = 3;
 
-/// PlayerState byte layout (8-byte Anchor discriminator + fields, little-endian):
-///   8..40   authority    (Pubkey, 32)
-///   40..72  owner        (Pubkey, 32)
-///   72      alive        (u8: 0/1)
-///   73..81  balance      (u64)
-///   81      position     (u8)
-///   82      leverage     (u8)
-///   83..91  entry_price  (u64)
-///   91..99  position_size(u64)
-///   99..107 liq_price    (u64)
-///   107..115 realized_pnl(i64)
-///   115..123 unrealized_pnl(i64)
+// PlayerState byte layout — see end-game for full doc.
 const PS_AUTHORITY: usize = 8;
 const PS_ALIVE: usize = 72;
 const PS_BALANCE: usize = 73;
@@ -32,19 +18,19 @@ const PS_REALIZED_PNL: usize = 107;
 const PS_UNREALIZED_PNL: usize = 115;
 const PS_MIN_LEN: usize = 123;
 
-/// Finalizes a game: sets status=Finished and writes the sorted leaderboard.
+/// Live leaderboard refresh, called by the cranker each tick (after the
+/// per-player close-position passes). Same logic as end-game minus the
+/// time/status guard and without flipping the game to Finished — so the front
+/// always reads a fresh ranking on-chain.
 ///
 /// remaining_accounts (after the 3 component-program slots Bolt prepends):
-/// every PlayerState PDA in the registry, in the order
-/// player_registry.player_states[0..count].
+/// every PlayerState PDA in the registry, in order player_states[0..count].
 #[system]
-pub mod end_game {
+pub mod refresh_leaderboard {
 
     pub fn execute(ctx: Context<Components>, _args_p: Vec<u8>) -> Result<Components>
     {
         require!(ctx.accounts.game_config.status == 1, GameError::GameNotPlaying);
-        let now = Clock::get()?.unix_timestamp;
-        require!(now >= ctx.accounts.game_config.game_end, GameError::GameNotOver);
 
         let count = (ctx.accounts.player_registry.count as usize).min(MAX_LEADERBOARD);
         let mut entries: [LeaderboardEntry; MAX_LEADERBOARD] =
@@ -73,7 +59,6 @@ pub mod end_game {
             );
             drop(data);
 
-            // Net worth = free cash + locked margin + flying PnL
             let margin = if leverage > 0 { (position_size / leverage as u64) as i64 } else { 0 };
             let net_worth = (balance as i64)
                 .saturating_add(margin)
@@ -108,7 +93,6 @@ pub mod end_game {
             ctx.accounts.leaderboard.entries[i] = entries[i];
         }
         ctx.accounts.leaderboard.count = filled as u8;
-        ctx.accounts.game_config.status = 2;
 
         Ok(ctx.accounts)
     }

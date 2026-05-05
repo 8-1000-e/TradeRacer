@@ -1536,6 +1536,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "refresh-leaderboard"
+version = "0.2.4"
+dependencies = [
+ "bolt-lang",
+ "game-config",
+ "leaderboard",
+ "player-registry",
+ "serde",
+ "shared",
+]
+
+[[package]]
 name = "regex"
 version = "1.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

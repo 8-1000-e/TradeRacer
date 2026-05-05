@@ -12,6 +12,7 @@ pub struct GameConfig {
     pub min_start_time: i64,
     /// Game ends at this timestamp (set by start-game = now + GAME_DURATION_SEC)
     pub game_end: i64,
+    
 }
 
 impl Default for GameConfig {
