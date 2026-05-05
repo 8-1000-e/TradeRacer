@@ -26,6 +26,9 @@ pub struct PlayerState {
     /// Notional position size in lamports = margin × leverage.
     /// Margin (lamports of balance reserved) = position_size / leverage.
     pub position_size: u64,
+    /// Pyth raw price at which the position auto-liquidates (0 if flat).
+    /// Long: entry × (1 − 1/leverage). Short: entry × (1 + 1/leverage).
+    pub liq_price: u64,
 
     /// Cumulative realized PnL across closed positions (lamports, can be negative).
     pub realized_pnl: i64,
@@ -45,6 +48,7 @@ impl Default for PlayerState {
             leverage: 0,
             entry_price: 0,
             position_size: 0,
+            liq_price: 0,
             realized_pnl: 0,
             unrealized_pnl: 0,
             bolt_metadata: BoltMetadata::default(),

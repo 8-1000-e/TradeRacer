@@ -32,13 +32,21 @@ pub mod open_position {
         require!(margin > 0 && margin <= ctx.accounts.player_state.balance, GameError::InsufficientBalance);
         let position_size = margin.checked_mul(leverage as u64).ok_or(GameError::InsufficientBalance)?;
 
+        let entry_price = read_pyth_price(ctx.remaining_accounts.last().unwrap())?;
+        let liq_price = match position {
+            POS_LONG  => entry_price - entry_price / leverage as u64,
+            POS_SHORT => entry_price + entry_price / leverage as u64,
+            _ => 0,
+        };
+
         ctx.accounts.player_state.position = position;
         ctx.accounts.player_state.leverage = leverage;
         ctx.accounts.player_state.position_size = position_size;
+        ctx.accounts.player_state.entry_price = entry_price;
+        ctx.accounts.player_state.liq_price = liq_price;
         ctx.accounts.player_state.balance -= margin;
         ctx.accounts.player_state.unrealized_pnl = 0;
 
-        ctx.accounts.player_state.entry_price = read_pyth_price(ctx.remaining_accounts.last().unwrap())?;
         Ok(ctx.accounts)
     }
 
