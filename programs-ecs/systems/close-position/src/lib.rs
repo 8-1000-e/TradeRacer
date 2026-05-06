@@ -3,7 +3,7 @@ use game_config::GameConfig;
 use player_state::PlayerState;
 use shared::*;
 
-declare_id!("ChETGKhsRzTynoskTMnaPUfyB2GUmCoE228Gv6FoczT9");
+declare_id!("7z57GU792phcnBsQvYDDXhBZzMyDU999WM6Yzy3jnNwM");
 
 /// Combined "tick + close" system. Called once per player either by:
 ///   - a cranker (every PNL_UPDATE_INTERVAL_SEC) to refresh unrealized PnL

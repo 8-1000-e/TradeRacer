@@ -2,7 +2,7 @@ use bolt_lang::*;
 
 declare_id!("EYcpWDjusuacuFrcz4JKnNDU78gsPpJYcmyrGZ2s9qz");
 
-pub const MAX_LEADERBOARD: usize = 10;
+pub const MAX_LEADERBOARD: usize = 20;
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace)]
 pub struct LeaderboardEntry {
@@ -31,17 +31,28 @@ impl Default for LeaderboardEntry {
     }
 }
 
+/// `entries` is a Vec rather than a fixed array so Borsh can deserialize
+/// element-by-element on the stack (~65 bytes per element) instead of
+/// allocating the whole 20-slot array on stack at once. Combined with
+/// `Box<Account<Leaderboard>>` on the consumer side, this keeps `update`
+/// and `bolt_execute` inside the BPF 4 KB stack frame budget at
+/// MAX_LEADERBOARD=20.
+///
+/// `Default` pre-fills the Vec with `MAX_LEADERBOARD` default entries so
+/// systems can keep using positional access (`entries[i] = …`) — same
+/// semantics as the original fixed array.
 #[component(delegate)]
 pub struct Leaderboard {
     /// Entries sorted by net_worth descending (best PnL on top).
-    pub entries: [LeaderboardEntry; MAX_LEADERBOARD],
+    #[max_len(MAX_LEADERBOARD)]
+    pub entries: Vec<LeaderboardEntry>,
     pub count: u8,
 }
 
 impl Default for Leaderboard {
     fn default() -> Self {
         Self {
-            entries: [LeaderboardEntry::default(); MAX_LEADERBOARD],
+            entries: vec![LeaderboardEntry::default(); MAX_LEADERBOARD],
             count: 0,
             bolt_metadata: BoltMetadata::default(),
         }

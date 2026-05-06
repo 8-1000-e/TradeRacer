@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-trade_fight = "7mUMr33noPhfFnnQJfY6BwziCAWnevAKHv2AnJ65d1B4"
+trade_fight_lobby = "9xbf27VdNp2ZMC5Kj37BdmF3zz7ov6enxdphTsUKF1ix"
 game-config = "D3AZXBim4wY9p2vt4ysHzL1M692ErQ4KtsnvWXS11YA7"
 player-state = "DTQz7WWMC6wpnBNMwujh9BUeHrezBcXfsrUM1KsdBL73"
 player-registry = "Dzi4us11W4QCSD5Erx2vfR15GyuMZn6S4Djr5HfPVVBm"

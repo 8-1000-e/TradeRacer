@@ -33,9 +33,8 @@ pub mod refresh_leaderboard {
         require!(ctx.accounts.game_config.status == 1, GameError::GameNotPlaying);
 
         let count = (ctx.accounts.player_registry.count as usize).min(MAX_LEADERBOARD);
-        let mut entries: [LeaderboardEntry; MAX_LEADERBOARD] =
-            [LeaderboardEntry::default(); MAX_LEADERBOARD];
-        let mut filled: usize = 0;
+        // Heap-allocated so we don't burn ~1.3 KB of stack at MAX_LEADERBOARD=20.
+        let mut entries: Vec<LeaderboardEntry> = Vec::with_capacity(count);
 
         for i in 0..count {
             let acc = &ctx.remaining_accounts[NUM_COMPONENTS + i];
@@ -64,18 +63,18 @@ pub mod refresh_leaderboard {
                 .saturating_add(margin)
                 .saturating_add(unrealized_pnl);
 
-            entries[filled] = LeaderboardEntry {
+            entries.push(LeaderboardEntry {
                 pubkey: authority,
                 net_worth,
                 balance,
                 unrealized_pnl,
                 realized_pnl,
                 alive,
-            };
-            filled += 1;
+            });
         }
 
         // Insertion sort, net_worth DESC. Tie-breaker: alive ranks above dead.
+        let filled = entries.len();
         for i in 1..filled {
             let mut j = i;
             while j > 0 {

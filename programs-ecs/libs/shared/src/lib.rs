@@ -109,7 +109,7 @@ pub const GAME_DURATION_SEC: i64 = 5 * 60;
 /// not call `close-position` more often than this.
 
 /// Max players per lobby. Mirrors red-light.
-pub const MAX_PLAYERS: usize = 10;
+pub const MAX_PLAYERS: usize = 20;
 
 /// Position direction encoding used in PlayerState.position.
 pub const POS_FLAT: u8 = 0;
