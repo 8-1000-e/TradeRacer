@@ -1,17 +1,19 @@
 use bolt_lang::*;
 
-declare_id!("Dzi4us11W4QCSD5Erx2vfR15GyuMZn6S4Djr5HfPVVBm");
+declare_id!("DLWJtGTeytHa1t94pa1XPcrWucXeYJbfxPNDMhEJGAP1");
 
-pub const MAX_PLAYERS: usize = 20;
+pub const MAX_PLAYERS: usize = 10;
 
 /// Mirrors red-light's registry: parallel arrays of player authority pubkeys
 /// and their corresponding PlayerState component PDAs.
 ///
 /// Stored as `Vec` rather than fixed arrays so Borsh can deserialize
 /// element-by-element on the stack (32 bytes temp per element) instead of
-/// allocating the whole 20-slot array at once. This keeps the auto-generated
+/// allocating the whole array at once — keeps the auto-generated
 /// `update` / `update_with_session` and the systems that read this component
-/// inside the BPF 4 KB stack frame budget at MAX_PLAYERS=20.
+/// inside the BPF 4 KB stack frame budget. Currently capped at 10 to stay
+/// under the 1024-byte Bolt return-data limit when `spawn_player` writes
+/// PlayerState + GameConfig + PlayerRegistry in a single CPI return.
 ///
 /// `Default` pre-fills both Vecs with `MAX_PLAYERS` zeroed entries so systems
 /// can keep using positional writes (`players[idx] = …`) — same semantics as

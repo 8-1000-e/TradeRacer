@@ -5,18 +5,18 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-trade_fight_lobby = "9xbf27VdNp2ZMC5Kj37BdmF3zz7ov6enxdphTsUKF1ix"
+close-position = "ChETGKhsRzTynoskTMnaPUfyB2GUmCoE228Gv6FoczT9"
+end-game = "Hx4rWEBiQb1z41gByya3yvDCjZYcvkdF946AzQ6mbaru"
 game-config = "D3AZXBim4wY9p2vt4ysHzL1M692ErQ4KtsnvWXS11YA7"
-player-state = "DTQz7WWMC6wpnBNMwujh9BUeHrezBcXfsrUM1KsdBL73"
-player-registry = "Dzi4us11W4QCSD5Erx2vfR15GyuMZn6S4Djr5HfPVVBm"
-leaderboard = "EYcpWDjusuacuFrcz4JKnNDU78gsPpJYcmyrGZ2s9qz"
 init-game = "9KGctbjYwgE3jJhb265BQ4GXDbVX7tnSptCLH56Agdtk"
+leaderboard = "Gm6tpszWzqzetoAHvTvxyBWAY4wYdREj9mmper7BPrZa"
+open-position = "HbiVhxLoCFQ2uYzAAKXisSpiyEdve38bvva5v97nTwVw"
+player-registry = "Dzi4us11W4QCSD5Erx2vfR15GyuMZn6S4Djr5HfPVVBm"
+player-state = "DTQz7WWMC6wpnBNMwujh9BUeHrezBcXfsrUM1KsdBL73"
+refresh-leaderboard = "4tp1GQbdrhqw45jwwdZPG5e1Njhhbd5tVXg94cRdxdRo"
 spawn-player = "FnRjhEaucBXa3ZNZtosKuCjdxnG4VaVe4MCNZa2HxDzB"
 start-game = "9KvG9Htsnew3Tsvt7462bxc93HjJ6g3nK6XAjeN1Uupu"
-open-position = "HbiVhxLoCFQ2uYzAAKXisSpiyEdve38bvva5v97nTwVw"
-close-position = "ChETGKhsRzTynoskTMnaPUfyB2GUmCoE228Gv6FoczT9"
-refresh-leaderboard = "4tp1GQbdrhqw45jwwdZPG5e1Njhhbd5tVXg94cRdxdRo"
-end-game = "Hx4rWEBiQb1z41gByya3yvDCjZYcvkdF946AzQ6mbaru"
+trade_fight_lobby = "874rb8bkqaQmYPT3DxSYGbPjrfHzUa2AcyuDGJuXC1AZ"
 
 [registry]
 url = "https://api.apr.dev"

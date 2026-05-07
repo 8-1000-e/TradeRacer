@@ -1,6 +1,6 @@
 use bolt_lang::*;
 
-declare_id!("DTQz7WWMC6wpnBNMwujh9BUeHrezBcXfsrUM1KsdBL73");
+declare_id!("Ba9QeK5PB6bF8fkfA64pyd4p3fkd6dco8tmEf2yToBtb");
 
 /// Per-player trading account. Balance is fake USD (USDC-equivalent) handed out
 /// on spawn — dies (alive=false) when balance + unrealized PnL hits 0.
@@ -22,8 +22,9 @@ pub struct PlayerState {
 
     /// Position direction: 0=Flat, 1=Long, 2=Short. See shared::POS_*.
     pub position: u8,
-    /// Leverage multiplier for the open position (1, 2, 5, 10, 25, 50).
-    pub leverage: u8,
+    /// Leverage multiplier for the open position. u16 instead of u8 because
+    /// the aggressive tier set goes up to 5000× — see shared::LEVERAGE_TIERS.
+    pub leverage: u16,
     /// Pyth raw price at which the position was opened (0 if flat).
     pub entry_price: u64,
     /// Notional position size in fake USD (8 decimals) = margin × leverage.
@@ -38,7 +39,13 @@ pub struct PlayerState {
     /// Most recent unrealized PnL snapshot (fake USD, 8 decimals, signed),
     /// recomputed by close-position on each tick.
     pub unrealized_pnl: i64,
-
+    /// Unix-second timestamp at which the current position was opened.
+    /// Set by `open-position` from `Clock::get()?.unix_timestamp`,
+    /// cleared back to 0 by every close branch in `close-position`.
+    /// Powers the chart's entry dot on the front + the `openedAt` column
+    /// in the `trade_fight_trade` history table — survives reconnects
+    /// because it lives on-chain.
+    pub opened_at: i64,
 }
 
 impl Default for PlayerState {
@@ -55,6 +62,7 @@ impl Default for PlayerState {
             liq_price: 0,
             realized_pnl: 0,
             unrealized_pnl: 0,
+            opened_at: 0,
             bolt_metadata: BoltMetadata::default(),
         }
     }

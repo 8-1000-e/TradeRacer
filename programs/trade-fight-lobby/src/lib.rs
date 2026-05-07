@@ -7,7 +7,7 @@ pub mod state;
 
 pub use instructions::*;
 
-declare_id!("9xbf27VdNp2ZMC5Kj37BdmF3zz7ov6enxdphTsUKF1ix");
+declare_id!("874rb8bkqaQmYPT3DxSYGbPjrfHzUa2AcyuDGJuXC1AZ");
 
 #[event]
 pub struct PrizeDistributed {

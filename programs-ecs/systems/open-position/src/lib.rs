@@ -3,7 +3,7 @@ use game_config::GameConfig;
 use player_state::PlayerState;
 use shared::*;
 
-declare_id!("HbiVhxLoCFQ2uYzAAKXisSpiyEdve38bvva5v97nTwVw");
+declare_id!("EroraNpFUnP8WcKXPnLD4HE2cnAj5YNyQo8NKWsmqYLy");
 
 /// Player opens a long or short SOL position with leverage.
 ///
@@ -24,7 +24,7 @@ pub mod open_position {
         require!(ctx.accounts.player_state.position == POS_FLAT, GameError::PositionAlreadyOpen);
 
         let position = parse_json_u64(&_args_p, b"position") as u8;
-        let leverage = parse_json_u64(&_args_p, b"leverage") as u8;
+        let leverage = parse_json_u64(&_args_p, b"leverage") as u16;
         let margin   = parse_json_u64(&_args_p, b"margin");
 
         require!(position == POS_LONG || position == POS_SHORT, GameError::InvalidDirection);
@@ -33,6 +33,9 @@ pub mod open_position {
         let position_size = margin.checked_mul(leverage as u64).ok_or(GameError::InsufficientBalance)?;
 
         let entry_price = read_pyth_price(ctx.remaining_accounts.last().unwrap())?;
+        // entry_price may legitimately be 0 on localnet (Pyth Lazer feed
+        // isn't running) — close-position handles that case below by
+        // skipping the unrealized / liq math, so we don't reject here.
         let liq_price = match position {
             POS_LONG  => entry_price - entry_price / leverage as u64,
             POS_SHORT => entry_price + entry_price / leverage as u64,
@@ -46,6 +49,10 @@ pub mod open_position {
         ctx.accounts.player_state.liq_price = liq_price;
         ctx.accounts.player_state.balance -= margin;
         ctx.accounts.player_state.unrealized_pnl = 0;
+        // Stamp the open time — the front uses this for the chart entry
+        // dot, and the back's history watcher copies it onto the trade
+        // row so closed trades carry both endpoints (openedAt / closedAt).
+        ctx.accounts.player_state.opened_at = Clock::get()?.unix_timestamp;
 
         Ok(ctx.accounts)
     }

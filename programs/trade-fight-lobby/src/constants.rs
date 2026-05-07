@@ -5,7 +5,7 @@ pub const LOBBY_SEED: &[u8] = b"lobby";
 pub const VAULT_SEED: &[u8] = b"vault";
 
 // Caps
-pub const MAX_PLAYERS: usize = 20;
+pub const MAX_PLAYERS: usize = 10;
 
 // Platform rake, in basis points (100 bps = 1%)
 pub const PLATFORM_FEE_BPS: u64 = 500; // 5%
@@ -27,8 +27,8 @@ pub const LEADERBOARD_COMPONENT_ID: Pubkey =
 // Layout of the BOLT Leaderboard account we decode manually.
 // `entries` is a Vec (Borsh: 4-byte LE length prefix then elements) — switched
 // from a fixed array so the auto-generated `update` ix and consuming systems
-// stay under the BPF 4 KB stack at MAX_PLAYERS=20. The Vec is pre-filled to
-// MAX_PLAYERS entries by Default, so the prefix is always MAX_PLAYERS.
+// stay under the BPF 4 KB stack budget. The Vec is pre-filled to MAX_PLAYERS
+// entries by Default, so the prefix is always MAX_PLAYERS.
 //
 // Entry: pubkey(32) + net_worth(i64=8) + balance(u64=8) + unrealized_pnl(i64=8)
 //      + realized_pnl(i64=8) + alive(1) = 65 bytes

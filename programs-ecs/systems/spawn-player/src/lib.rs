@@ -4,7 +4,7 @@ use player_state::PlayerState;
 use player_registry::PlayerRegistry;
 use shared::GameError;
 
-declare_id!("FnRjhEaucBXa3ZNZtosKuCjdxnG4VaVe4MCNZa2HxDzB");
+declare_id!("AmkrpcXWp54TtJHPSVXvrMCo6dkdXwq1q2BbvR3mJKUY");
 
 #[system]
 pub mod spawn_player {
@@ -26,6 +26,7 @@ pub mod spawn_player {
         ctx.accounts.player_state.entry_price = 0;
         ctx.accounts.player_state.position_size = 0;
         ctx.accounts.player_state.realized_pnl = 0;
+        ctx.accounts.player_state.opened_at = 0;
 
         ctx.accounts.player_registry.players[idx] = ctx.accounts.player_state.owner.to_bytes();
         ctx.accounts.player_registry.player_states[idx] = ctx.accounts.player_state.key().to_bytes();

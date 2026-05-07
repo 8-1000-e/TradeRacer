@@ -2,7 +2,7 @@ use bolt_lang::*;
 use game_config::GameConfig;
 use shared::LOBBY_DURATION_SEC;
 
-declare_id!("9KGctbjYwgE3jJhb265BQ4GXDbVX7tnSptCLH56Agdtk");
+declare_id!("6HbXyVdNJihLBzZaGibWWqo93a4uXQeVyi3efWyhhakw");
 
 #[system]
 pub mod init_game {

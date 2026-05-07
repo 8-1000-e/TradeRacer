@@ -6,5 +6,5 @@ target
 node_modules
 test-ledger
 .yarn
-/magicblock-test-storage/*
+magicblock-test-storage*/
 tests/*
