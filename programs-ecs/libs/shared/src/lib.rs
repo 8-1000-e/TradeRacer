@@ -117,17 +117,17 @@ pub const POS_LONG: u8 = 1;
 pub const POS_SHORT: u8 = 2;
 
 /// Allowed leverage tiers (front-end should restrict to these values).
-/// Aggressive scale tuned for 5-min SOL matches — floor at 200× (0.5%
-/// liq distance, anything looser barely fires in a round), ceiling at
-/// 1500× so the top tier still rewards skill (0.067% move).
+/// Aggressive scale tuned for 5-min SOL matches — floor at 400× (~0.25%
+/// liq distance, even the safest tier still fires often enough during
+/// a round), ceiling at 1500× for the glass-cannon top.
 /// Liq distance per tier (= 1/leverage of entry):
-///   200×  → 0.5%
-///   300×  → 0.33%
-///   500×  → 0.2%
+///   400×  → 0.25%
+///   500×  → 0.20%
 ///   750×  → 0.13%
-///   1000× → 0.1%
+///   1000× → 0.10%
+///   1250× → 0.08%
 ///   1500× → 0.067%
-pub const LEVERAGE_TIERS: [u16; 6] = [200, 300, 500, 750, 1000, 1500];
+pub const LEVERAGE_TIERS: [u16; 6] = [400, 500, 750, 1000, 1250, 1500];
 
 // ─── Errors ───
 

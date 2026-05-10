@@ -16,6 +16,15 @@ pub fn leave_lobby(ctx: Context<LeaveLobby>, _lobby_id: u64, player: Pubkey) -> 
         lobby.authority,
         LobbyError::Unauthorized
     );
+    // Once the lobby has reached MIN_PLAYERS the match is committed: the
+    // back's tick is about to call `start_match` and any leave at this
+    // point would either drop us back below the threshold or race the
+    // launch. Reject on-chain so a malicious client can't bypass the
+    // front's UI guard. Same UX as red-light + airport-carousel.
+    require!(
+        (lobby.player_count as usize) < MIN_PLAYERS,
+        LobbyError::LobbyLocked,
+    );
 
     let count = lobby.player_count as usize;
     let idx = lobby.players[..count]

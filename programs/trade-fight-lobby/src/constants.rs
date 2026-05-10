@@ -6,6 +6,11 @@ pub const VAULT_SEED: &[u8] = b"vault";
 
 // Caps
 pub const MAX_PLAYERS: usize = 10;
+/// Minimum players for a match to launch — once the lobby reaches this
+/// count, the back's tick will start the launch flow and `leave_lobby`
+/// is rejected on-chain (`LobbyLocked`). Mirrors the back's `MIN_PLAYERS`
+/// in `trade-fight-chain.service.ts`.
+pub const MIN_PLAYERS: usize = 2;
 
 // Platform rake, in basis points (100 bps = 1%)
 pub const PLATFORM_FEE_BPS: u64 = 500; // 5%

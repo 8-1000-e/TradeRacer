@@ -30,4 +30,6 @@ pub enum LobbyError {
     VaultUnderflow,
     #[msg("Player is not in this lobby")]
     NotInLobby,
+    #[msg("Lobby is locked — minimum-player threshold reached, no more leaves")]
+    LobbyLocked,
 }
